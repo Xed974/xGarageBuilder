@@ -46,7 +46,7 @@ local function loadVehicles(id, type)
 end
 
 local open = false
-local mainMenu = RageUI.CreateMenu(Config.GarageTitle, Config.GarageDesc, nil, nil, Config.Directory, Config.Banner)
+local mainMenu = RageUI.CreateMenu("Garage", "Liste", nil, nil, "root_cause5", xGarage.ColorMenu)
 mainMenu.Display.Header = true
 mainMenu.Closable = false
 
@@ -60,7 +60,7 @@ local function inGarage(id)
                 RageUI.IsVisible(mainMenu, function()
                     if #loading > 0 then
                         for _,v in pairs(loading) do
-                            RageUI.Button(("~r~→~s~ %s"):format(v.name), nil, {RightLabel = ("%s"):format(v.plate)}, true, {
+                            RageUI.Button(("~%s~→~s~ %s"):format(xGarage.ColorGlobal, v.name), nil, {RightLabel = ("%s"):format(v.plate)}, true, {
                                 onSelected = function()
                                     ESX.TriggerServerCallback("xGarage:deleteCar", function(can) 
                                         if can then
