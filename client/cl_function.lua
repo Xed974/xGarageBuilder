@@ -25,64 +25,83 @@ local loading = {}
 local function loadVehicles(id, type)
     loading = {}
     ESX.TriggerServerCallback("xGarage:loadVehicles", function(data)
+        loading = {}
         for _,v in pairs(data) do
-            if not IsModelInCdimage(v.model) then return end
-            RequestModel(v.model)
-            while not HasModelLoaded(v.model) do
-                Citizen.Wait(10)
+            if ESX.Game.IsSpawnPointClear(vector3(Config.Garage[garageplaces].posCar[_].x, Config.Garage[garageplaces].posCar[_].y, Config.Garage[garageplaces].posCar[_].z), 1) then
+                if not IsModelInCdimage(v.model) then return end
+                RequestModel(v.model)
+                while not HasModelLoaded(v.model) do
+                    Citizen.Wait(10)
+                end
+                ESX.Game.SpawnLocalVehicle(v.model, vector3(Config.Garage[garageplaces].posCar[_].x, Config.Garage[garageplaces].posCar[_].y, Config.Garage[garageplaces].posCar[_].z), Config.Garage[garageplaces].heading, function(car) 
+                    ESX.Game.SetVehicleProperties(car, v.properties)
+                    SetVehicleNumberPlateText(car, v.plate)
+                    table.insert(loading, {model = car, plate = v.plate, properties = v.properties, name = v.model})
+                    FreezeEntityPosition(car, true)
+                    TriggerServerEvent("xGarage:setEntityBucket", id, car)
+                end)
             end
-            local car = CreateVehicle(v.model, xGarage.Garage[type].posCar[_].x, xGarage.Garage[type].posCar[_].y, xGarage.Garage[type].posCar[_].z, xGarage.Garage[type].heading, true, false)
-            ESX.Game.SetVehicleProperties(car, v.properties)
-            SetVehicleNumberPlateText(car, v.plate)
-            TriggerServerEvent("xGarage:setEntityBucket", id, car)
-            table.insert(loading, {model = car, plate = v.plate, properties = v.properties, name = v.model})
         end
     end, id)
 end
 
-function exitGarage()
-    for _,v in pairs(loading) do
-        DeleteEntity(v.model)
+local open = false
+local mainMenu = RageUI.CreateMenu(Config.GarageTitle, Config.GarageDesc, nil, nil, Config.Directory, Config.Banner)
+mainMenu.Display.Header = true
+mainMenu.Closable = false
+
+local function inGarage(id)
+    if not open then
+        open = true
+        RageUI.Visible(mainMenu, true)
+        Citizen.CreateThread(function()
+            while open do
+                Wait(0)
+                RageUI.IsVisible(mainMenu, function()
+                    if #loading > 0 then
+                        for _,v in pairs(loading) do
+                            RageUI.Button(("~r~→~s~ %s"):format(v.name), nil, {RightLabel = ("%s"):format(v.plate)}, true, {
+                                onSelected = function()
+                                    ESX.TriggerServerCallback("xGarage:deleteCar", function(can) 
+                                        if can then
+                                            exitGarage()
+                                            DoScreenFadeOut(200)
+                                            Wait(200)
+                                            ESX.Game.Teleport(PlayerPedId(), savePos, function()end)
+                                            TriggerServerEvent("xGarage:setBucket", 0)
+                                            Wait(1000)
+                                            DoScreenFadeIn(200)
+                                            if not IsModelInCdimage(v.name) then return end
+                                            RequestModel(v.name)
+                                            while not HasModelLoaded(v.name) do
+                                                Citizen.Wait(10)
+                                            end
+                                            local vehicle = CreateVehicle(v.name, savePos.x, savePos.y, savePos.z, GetEntityHeading(PlayerPedId()), true, false)
+                                            ESX.Game.SetVehicleProperties(vehicle, v.properties)
+                                            SetVehicleNumberPlateText(vehicle, v.plate)
+                                            SetPedIntoVehicle(PlayerPedId(), vehicle, -1)
+                                        end
+                                    end, v.plate, id, v.name)
+                                end
+                            })
+                        end
+                    else
+                        RageUI.Separator("")
+                        RageUI.Separator("~r~Le garage est vide.")
+                        RageUI.Separator("")
+                    end
+                end)
+            end
+        end)
     end
 end
 
-local function inGarage(id)
-    local model, name, properties, plate = nil, nil, nil, nil
-    Citizen.CreateThread(function()
-        while true do
-            local wait = 1000
-
-            for _,v in pairs(loading) do
-                if (GetVehiclePedIsIn(PlayerPedId(), false)) == v.model then
-                    model, name, properties, plate = v.model, v.name, v.properties, v.plate
-                end
-            end
-            if (GetVehiclePedIsIn(PlayerPedId(), false)) == model then
-                wait = 0
-                ESX.ShowHelpNotification("Appuyez sur ~INPUT_MOVE_UP_ONLY~ ou ~INPUT_MOVE_DOWN_ONLY~ pour sortir avec le véhicule.")
-                if (IsControlJustPressed(1, 32) or IsControlJustPressed(1, 71) or IsControlJustPressed(1, 77) or IsControlJustPressed(1, 87) or IsControlJustPressed(1, 129) or IsControlJustPressed(1, 136) or IsControlJustPressed(1, 150) or IsControlJustPressed(1, 232)) or (IsControlJustPressed(1, 8) or IsControlJustPressed(1, 31) or IsControlJustPressed(1, 33) or IsControlJustPressed(1, 72) or IsControlJustPressed(1, 78) or IsControlJustPressed(1, 88) or IsControlJustPressed(1, 130) or IsControlJustPressed(1, 139) or IsControlJustPressed(1, 149) or IsControlJustPressed(1, 151) or IsControlJustPressed(1, 196) or IsControlJustPressed(1, 219) or IsControlJustPressed(1, 233) or IsControlJustPressed(1, 268) or IsControlJustPressed(1, 269) or IsControlJustPressed(1, 302)) then
-                    exitGarage()
-                    TriggerServerEvent("xGarage:deleteCar", plate, id, name)
-                    DoScreenFadeOut(200)
-                    Wait(200)
-                    ESX.Game.Teleport(PlayerPedId(), posExit, function()end)
-                    TriggerServerEvent("xGarage:setBucket", 0)
-                    Wait(1000)
-                    DoScreenFadeIn(200)
-                    if not IsModelInCdimage(name) then return end
-                    RequestModel(name)
-                    while not HasModelLoaded(name) do
-                        Citizen.Wait(10)
-                    end
-                    local vehicle = CreateVehicle(name, posExit.x, posExit.y, posExit.z, GetEntityHeading(PlayerPedId()), true, false)
-                    ESX.Game.SetVehicleProperties(vehicle, properties)
-                    SetVehicleNumberPlateText(vehicle, plate)
-                    SetPedIntoVehicle(PlayerPedId(), vehicle, -1)
-                end
-            end
-            Citizen.Wait(wait)
-        end
-    end)
+function exitGarage()
+    for _,v in pairs(loading) do
+        DeleteVehicle(v.model)
+    end
+    RageUI.CloseAll()
+    open = false
 end
 
 function enterGarage(id, type)
