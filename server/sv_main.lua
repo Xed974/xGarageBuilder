@@ -87,10 +87,8 @@ ESX.RegisterServerCallback("xGarage:loadVehicles", function(source, cb, id)
     end)
 end)
 
-RegisterNetEvent("xGarage:deleteCar")
-AddEventHandler("xGarage:deleteCar", function(plate, id, name)
-    local src = source
-    local xPlayer = ESX.GetPlayerFromId(src)
+ESX.RegisterServerCallback("xGarage:deleteCar", function(source, cb, plate, id, name)
+    local xPlayer = ESX.GetPlayerFromId(source)
 
     if (not xPlayer) then return end
     MySQL.Async.fetchAll("SELECT garage FROM garage WHERE id = @id", {
@@ -100,13 +98,14 @@ AddEventHandler("xGarage:deleteCar", function(plate, id, name)
             local garages = json.decode(result[1].garage)
             for _,v in pairs(garages) do
                 if v.plate == plate then
+                    cb(true)
                     table.remove(garages, _)
                     MySQL.Async.execute("UPDATE garage SET garage = @garage WHERE id = @id", {
                         ["@garage"] = json.encode(garages),
                         ["@id"] = id
                     }, function(result2)
                         if result2 ~= nil then
-                            TriggerClientEvent('esx:showNotification', src, ('(~g~Succès~s~)\nVous avez sortie votre ~%s~%s~s~. (~r~%s~s~)'):format(xGarage.ColorGlobal, name, plate))
+                            TriggerClientEvent('esx:showNotification', xPlayer.source, ('(~g~Succès~s~)\nVous avez sortie votre ~r~%s~s~. (~r~%s~s~)'):format(name, plate))
                         end 
                     end)
                 end
