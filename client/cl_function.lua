@@ -80,6 +80,7 @@ local function inGarage(id)
                                             ESX.Game.SetVehicleProperties(vehicle, v.properties)
                                             SetVehicleNumberPlateText(vehicle, v.plate)
                                             SetPedIntoVehicle(PlayerPedId(), vehicle, -1)
+                                            return
                                         end
                                     end, v.plate, id, v.name)
                                 end
