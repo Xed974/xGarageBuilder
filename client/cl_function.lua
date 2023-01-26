@@ -27,13 +27,13 @@ local function loadVehicles(id, type)
     ESX.TriggerServerCallback("xGarage:loadVehicles", function(data)
         loading = {}
         for _,v in pairs(data) do
-            if ESX.Game.IsSpawnPointClear(vector3(Config.Garage[garageplaces].posCar[_].x, Config.Garage[garageplaces].posCar[_].y, Config.Garage[garageplaces].posCar[_].z), 1) then
+            if ESX.Game.IsSpawnPointClear(vector3(xGarage.Garage[garageplaces].posCar[_].x, xGarage.Garage[garageplaces].posCar[_].y, xGarage.Garage[garageplaces].posCar[_].z), 1) then
                 if not IsModelInCdimage(v.model) then return end
                 RequestModel(v.model)
                 while not HasModelLoaded(v.model) do
                     Citizen.Wait(10)
                 end
-                ESX.Game.SpawnLocalVehicle(v.model, vector3(Config.Garage[garageplaces].posCar[_].x, Config.Garage[garageplaces].posCar[_].y, Config.Garage[garageplaces].posCar[_].z), Config.Garage[garageplaces].heading, function(car) 
+                ESX.Game.SpawnLocalVehicle(v.model, vector3(xGarage.Garage[garageplaces].posCar[_].x, xGarage.Garage[garageplaces].posCar[_].y, xGarage.Garage[garageplaces].posCar[_].z), xGarage.Garage[garageplaces].heading, function(car) 
                     ESX.Game.SetVehicleProperties(car, v.properties)
                     SetVehicleNumberPlateText(car, v.plate)
                     table.insert(loading, {model = car, plate = v.plate, properties = v.properties, name = v.model})
