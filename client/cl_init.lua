@@ -39,21 +39,23 @@ Citizen.CreateThread(function()
                     end
                 end
             end
-            if dstposIn <= xGarage.MarkerDistance then
-                wait = 0
-                DrawMarker(xGarage.MarkerType, posIn.x, posIn.y, posIn.z, 0.0, 0.0, 0.0, 0.0,0.0,0.0, xGarage.MarkerSizeLargeur, xGarage.MarkerSizeEpaisseur, xGarage.MarkerSizeHauteur, xGarage.MarkerColorR, xGarage.MarkerColorG, xGarage.MarkerColorB, xGarage.MarkerOpacite, xGarage.MarkerSaute, true, p19, xGarage.MarkerTourne)
-            end
-            if dstposIn <= xGarage.OpenMenuDistance then
-                wait = 0
-                ESX.ShowHelpNotification(("Appuyez sur ~INPUT_CONTEXT~ pour ~%s~sortir du garage~s~."):format(xGarage.ColorGlobal))
-                if IsControlJustPressed(1, 51) then
-                    exitGarage()
-                    DoScreenFadeOut(200)
-                    Wait(200)
-                    ESX.Game.Teleport(PlayerPedId(), posExit, function()end)
-                    TriggerServerEvent("xGarage:setBucket", 0)
-                    Wait(1000)
-                    DoScreenFadeIn(200)
+            if posExit ~= nil then
+                if dstposIn <= xGarage.MarkerDistance then
+                    wait = 0
+                    DrawMarker(xGarage.MarkerType, posIn.x, posIn.y, posIn.z, 0.0, 0.0, 0.0, 0.0,0.0,0.0, xGarage.MarkerSizeLargeur, xGarage.MarkerSizeEpaisseur, xGarage.MarkerSizeHauteur, xGarage.MarkerColorR, xGarage.MarkerColorG, xGarage.MarkerColorB, xGarage.MarkerOpacite, xGarage.MarkerSaute, true, p19, xGarage.MarkerTourne)
+                end
+                if dstposIn <= xGarage.OpenMenuDistance then
+                    wait = 0
+                    ESX.ShowHelpNotification(("Appuyez sur ~INPUT_CONTEXT~ pour ~%s~sortir du garage~s~."):format(xGarage.ColorGlobal))
+                    if IsControlJustPressed(1, 51) then
+                        exitGarage()
+                        DoScreenFadeOut(200)
+                        Wait(200)
+                        ESX.Game.Teleport(PlayerPedId(), posExit, function()end)
+                        TriggerServerEvent("xGarage:setBucket", 0)
+                        Wait(1000)
+                        DoScreenFadeIn(200)
+                    end
                 end
             end
         end
