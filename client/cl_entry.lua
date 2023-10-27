@@ -9,12 +9,12 @@ end)
 
 RegisterNetEvent("xGarage:ownersonner")
 AddEventHandler("xGarage:ownersonner", function(listeSonner)
+    ESX.ShowNotification(("(~y~Information~s~)\nAppuyez sur Y pour faire entrer : ~%s~%s~s~."):format(xGarage.ColorGlobal, v.name))
     for _,v in pairs(listeSonner) do
         local boucle = true
         local time = 1500
         while boucle do
             Wait(0)
-            ESX.ShowNotification(("(~y~Information~s~)\nAppuyez sur Y pour faire entrer : ~%s~%s~s~."):format(xGarage.ColorGlobal, v.name))
             time = time - 1
             if IsControlJustPressed(0, 246) then
                 TriggerServerEvent("xGarage:entrerStatus", v.player, v.posOut, v.id, v.type, true)
